@@ -1,0 +1,93 @@
+#include<wiringPi.h>
+#include<stdio.h>
+
+#define HIGH_TIME 32
+
+typedef unsigned long uint32;
+
+int pinnumber = 14;
+int TMPz, TMPf, RHz, RHf;
+
+int readdata(void)//注：当前小数部分用于以后扩展,现读出为0。一次完整的数据传输为40bit，高位先出。
+{
+	uint32 JYW;
+	int i;
+	uint32 data = 0;
+	
+	pinMode(pinnumber, OUTPUT);
+	digitalWrite(pinnumber, HIGH);
+	delay(2000);
+	
+	pinMode(pinnumber, OUTPUT);
+	digitalWrite(pinnumber, LOW);
+	delay(25);//主机把总线拉低必须大于18毫秒，保证DHT11能检测到起始信号
+	digitalWrite(pinnumber, HIGH);
+	pinMode(pinnumber, INPUT);
+	delayMicroseconds(27);//延时等待20-40微秒，开始读取信号
+	
+	if(digitalRead(pinnumber)==0)
+	{
+		while(!digitalRead(pinnumber));
+		for(i=0;i<32;i++)
+		{
+			while(digitalRead(pinnumber));
+			while(!digitalRead(pinnumber));
+			delayMicroseconds(HIGH_TIME);
+			
+			data*= 2;//对二进制数进行左移位操作
+			if(digitalRead(pinnumber))
+			{
+				data++;//读取数据为1，存储在data中
+			}			
+		}
+		for(i=0;i<8;i++)
+		{
+			while(digitalRead(pinnumber));
+			while(!digitalRead(pinnumber));
+			delayMicroseconds(HIGH_TIME);
+			
+			JYW*= 2;
+			if(digitalRead(pinnumber))
+			{
+				JYW++;
+			}
+			
+		}
+		TMPz = (data>>8)&0xff;
+		TMPf = data&0xff;
+		RHz  = (data>>24)&0xff;
+		RHf  = (data>>16)&0xff;
+		JYW  = JYW&0xff;
+		if(JYW == (TMPz + TMPf + RHz + RHf))
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+		
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+int main(void)
+{
+	wiringPiSetup();	
+	while(1)
+	{
+		if(readdata())
+		{
+			printf("RH:%d.%d%%\n",RHz,RHf);
+			printf("TMP:%d.%d°C\n",TMPz,TMPf);
+		}
+		else
+		{
+			printf("Error.\n");
+		}
+	}
+	return 0;
+}
