@@ -1,0 +1,40 @@
+//头文件需加入#include<lcd.h>
+//编译时需加入/home/pi/wiringPi/devLib/lcd.o
+//#include<stdio.h>
+//#include<wiringPi.h>
+//#include<lcd.h>
+/*****lcd参数设置*****/
+#define lcdRows 2
+#define lcdCols 16
+#define lcdBits 8
+#define lcdRS   12
+#define lcdEn   13
+#define lcdD0   4
+#define lcdD1   5
+#define lcdD2   6
+#define lcdD3   7
+#define lcdD4   8
+#define lcdD5   9
+#define lcdD6   10
+#define lcdD7   11
+/*****lcd参数设置*****/
+char str1[]="  Hello world!  ";
+char str2[]="  made by Tony  ";
+int 1602Pi (char *str1, char *str2)
+{
+	wiringPiSetup();
+	int fp = lcdInit(lcdRows,lcdCols,lcdBits,lcdRS,lcdEn,lcdD0,lcdD1,lcdD2,lcdD3,lcdD4,lcdD5,lcdD6,lcdD7);
+	if(fp==-1)
+	{
+		printf("LCD display failed!\n");
+		return -1;
+	}
+	delay(1000);
+	lcdPosition(fp, 0, 0);
+	lcdPuts(fp,str1);//lcdPrintf(fp, "%d", number);
+	delay(1000);
+	lcdPosition(fp, 0, 1);
+	lcdPuts(fp, str2);
+	delay(1000);
+	return 0;
+}
