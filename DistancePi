@@ -1,0 +1,30 @@
+//#include<stdio.h>
+//#include<wiringPi.h>
+
+/***超声波配置参数***/
+#define FSD  2
+#define JSD  3
+/***超声波配置参数***/
+
+float DistancePi(void)
+{
+	unsigned int start, end;
+	float distance;
+	pinMode(FSD , OUTPUT); 
+	pinMode(JSD , INPUT );
+    digitalWrite(FSD, 0);
+	delay(1) ;
+	
+	digitalWrite(FSD, 1); 
+	delay(0.015);
+	digitalWrite(FSD, 0);
+	
+    while(digitalRead(JSD)!=1);
+	start = micros();//要与wiringPiSetup函数配合使用
+	
+	while(digitalRead(JSD)!=0);
+	end = micros();
+		
+	distance = (float)(end-start) / 1000000 * 34000 / 2;
+	return distance;
+}
